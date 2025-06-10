@@ -3,6 +3,7 @@
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
 import { locales, type Locale } from '../i18n';
+import { useCallback } from 'react';
 
 export function useI18n() {
   try {
@@ -91,11 +92,18 @@ export function useI18n() {
 }
 
 // 便捷的翻译钩子
-export function useTranslation(namespace?: string) {
+type TFunction = (key: string, values?: Record<string, any>) => string;
+
+export function useTranslation(namespace?: string): TFunction {
   try {
-    return useTranslations(namespace);
+    const t = useTranslations(namespace);
+    return useCallback((key: string, values?: Record<string, any>): string => {
+      // next-intl的t函数可以返回React元素，我们这里强制转为字符串
+      const message = t(key, values);
+      return typeof message === 'string' ? message : key;
+    }, [t]);
   } catch (error) {
     // 如果上下文不可用，返回一个默认函数
-    return (key: string) => key;
+    return useCallback((key: string) => key, []);
   }
 }

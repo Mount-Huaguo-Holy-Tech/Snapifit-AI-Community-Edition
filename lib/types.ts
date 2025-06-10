@@ -35,6 +35,7 @@ export interface ExerciseEntry {
   exercise_name: string
   exercise_type: "cardio" | "strength" | "flexibility" | "other"
   duration_minutes: number
+  time_period?: string // 时间段：morning, noon, afternoon, evening
   distance_km?: number // 适用于有氧运动
   sets?: number // 适用于力量训练
   reps?: number // 适用于力量训练
@@ -117,6 +118,9 @@ export interface DailyLog {
   calculatedTDEE?: number // 新增：当日计算的TDEE
   tefAnalysis?: TEFAnalysis // 新增：TEF分析结果
   dailyStatus?: DailyStatus // 新增：每日状态记录
+  last_modified?: string // ISO 8601 格式的日期时间字符串，用于同步
+  deletedFoodIds?: string[] // 新增：已删除的食物条目ID列表（逻辑删除）
+  deletedExerciseIds?: string[] // 新增：已删除的运动条目ID列表（逻辑删除）
 }
 
 // 用户配置类型
@@ -145,13 +149,22 @@ export interface ModelConfig {
   name: string
   baseUrl: string
   apiKey: string
+  source: 'private' | 'shared'; // 新增：数据源选择
+  sharedKeyConfig?: {
+    mode: 'auto' | 'manual';
+    selectedModel?: string;
+    selectedKeyIds?: string[];
+  }
 }
 
 // AI 配置类型
 export interface AIConfig {
-  agentModel: ModelConfig // 工作模型/Agents模型
-  chatModel: ModelConfig // 对话模型
-  visionModel: ModelConfig // 视觉模型
+  agentModel: ModelConfig
+  chatModel: ModelConfig
+  visionModel: ModelConfig
+  sharedKey: {
+    selectedKeyIds: string[];
+  }
 }
 
 // AI助手记忆类型
@@ -169,11 +182,106 @@ export interface AIMemoryUpdateRequest {
   reason?: string // 更新原因
 }
 
-// 扩展的消息类型，支持思考过程
+// 扩展的消息类型，支持思考过程和图片
 export interface ExtendedMessage {
   id: string
   role: "user" | "assistant" | "system"
   content: string
   reasoning_content?: string // 思考过程内容
+  images?: string[] // 图片数据URI数组
   timestamp?: string
+}
+
+// 共享Key配置类型
+export interface SharedKeyConfig {
+  id?: string
+  userId: string
+  name: string
+  baseUrl: string
+  apiKey: string
+  availableModels: string[]
+  dailyLimit: number
+  description?: string
+  tags: string[]
+  isActive: boolean
+  usageCountToday: number
+  totalUsageCount: number
+  lastUsedAt?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+// Key使用日志类型
+export interface KeyUsageLog {
+  id?: string
+  sharedKeyId: string
+  userId: string
+  apiEndpoint: string
+  modelUsed: string
+  tokensUsed?: number
+  costEstimate?: number
+  success: boolean
+  errorMessage?: string
+  createdAt?: string
+}
+
+// 感谢榜贡献者类型
+export interface Contributor {
+  userId: string
+  username: string
+  avatarUrl?: string
+  totalContributions: number
+  dailyLimit: number
+  isActive: boolean
+}
+
+// 当前使用Key信息类型
+export interface CurrentKeyInfo {
+  contributorName: string
+  contributorAvatar?: string
+  modelName: string
+  keyName: string
+  source: 'shared' | 'fallback'
+}
+
+// AI Coach快照类型
+export interface CoachSnapshot {
+  id?: string
+  userId: string
+  title: string
+  description: string
+  conversationData: any // 对话记录
+  modelConfig: any // 模型配置
+  healthDataSnapshot: any // 健康数据快照
+  userRating: number // 用户自评分 1-5
+  isPublic: boolean
+  averageRating?: number // 平均评分
+  ratingCount?: number // 评分人数
+  createdAt?: string
+  updatedAt?: string
+}
+
+// 快照评分类型
+export interface SnapshotRating {
+  id?: string
+  snapshotId: string
+  userId: string
+  rating: number // 1-5星
+  comment?: string
+  createdAt?: string
+}
+
+// 用户认证信息类型
+export interface UserAuth {
+  id: string
+  linuxDoId: string
+  username: string
+  avatarUrl?: string
+  email?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AppState {
+  // ... existing code ...
 }
